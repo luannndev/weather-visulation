@@ -1,23 +1,28 @@
 
+chooseCRANmirror(graphics = FALSE, ind = 1)
+
+necessary_packages <- c("evaluate", "ggplot2", "dplyr", "lubridate", "plotly", "htmlwidgets")
+new_packages <- necessary_packages[!(necessary_packages %in% installed.packages()[,"Package"])]
+if(length(new_packages)) install.packages(new_packages)
+
 library(ggplot2)
 library(dplyr)
+library(lubridate)
+library(plotly)
+library(htmlwidgets)
 
-data <- read.csv("weather.csv")
+if (!dir.exists("output")) {
+  dir.create("output")
+}
 
-print(head(data))
+source("classes/WeatherDataLoader.R")
+source("classes/WeatherAnalyzer.R")
+source("classes/WeatherVisualizer.R")
+source("classes/WeatherReport.R")
 
-data <- data %>%
-  rename(
-    temperature = temp,
-    precipitation = prcp
-  )
+data_loader <- WeatherDataLoader$new(file_path = "data/weather.csv")
+analyzer <- WeatherAnalyzer$new()
+visualizer <- WeatherVisualizer$new()
+report <- WeatherReport$new(data_loader = data_loader, analyzer = analyzer, visualizer = visualizer)
 
-print(head(data))
-
-ggplot(data, aes(x = temperature, y = precipitation)) +
-  geom_point(color = "blue", size = 2) +
-  labs(title = "Temperatur vs. Niederschlag in Köln", x = "Temperatur (°C)", y = "Niederschlag (mm)") +
-  theme_minimal()
-
-# Diagramm speichern
-ggsave("weather-cologne.png")
+report$generate_report()
